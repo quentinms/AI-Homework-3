@@ -1,15 +1,15 @@
-public class Analyse {
+public class Analysis {
 
 	Action action;
 	double probability;
 	
-	public static Analyse analyseDuck(Duck ducky)
+	public static Analysis analyseDuck(Duck ducky)
 	{
 		
 		return null;
 	}
 	
-	public Analyse(Action action, double probability)
+	public Analysis(Action action, double probability)
 	{
 		this.action=action;
 		this.probability=probability;
