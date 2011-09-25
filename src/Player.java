@@ -29,11 +29,11 @@ public class Player {
 		 * Here you should write your clever algorithms to get the best action.
 		 * This skeleton never shoots.
 		 */
-		Analysis max = new Analysis(Action.cDontShoot, 0);
-		Analysis current;
+		AnalysisResult max = new AnalysisResult(Action.cDontShoot, 0);
+		AnalysisResult current;
 
 		for (Duck d : pState.mDucks) {
-			current = Analysis.analyseDuck(d);
+			current =  new Analysis(d).analyseDuck();
 			if (current.probability > max.probability) {
 				max = current;
 			}
