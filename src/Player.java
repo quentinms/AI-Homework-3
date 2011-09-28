@@ -33,13 +33,13 @@ public class Player {
 		AnalysisResult current;
 
 		for (Duck d : pState.mDucks) {
-			current =  new Analysis(d).analyseDuck();
+			current =  new Analysis(d,pDue).analyseDuck();
 			if (current.probability > max.probability) {
 				max = current;
 			}
 		}
 
-		// this line doesn't shoot any bird
+		
 		return max.action;
 
 		// this line would predict that bird 0 is totally stopped and shoot at
