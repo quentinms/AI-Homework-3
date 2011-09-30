@@ -7,76 +7,21 @@ public class Analysis {
 	double probability;
 
 	Date pDue;
-	
-	double[] pi = { 0.27, 0.26, 0.24, 0.23 };
-	final static double CONVERGENCE_THRESHOLD = 0.01;
 
-	final static int NUMBER_OF_STATES = 4;
+	double[] pi;
+	final static int NUMBER_OF_STATES = 3;
+	final static int NUMBER_OF_OUTPUTS = 9;
 
-	final static int NUMBER_OF_OUTPUTS = 25;
-
-	final static int MIGRATING = 0;
-	final static int QUACKING = 1;
-	final static int PANICKING = 2;
-	final static int FEIGNING_DEATH = 3;
+	// final static int MIGRATING = 0;
+	// final static int QUACKING = 1;
+	// final static int PANICKING = 2;
+	// final static int FEIGNING_DEATH = 3;
 
 	/* Initialize probabilities (state to state, state to move, etc...) */
 
-	double[][] a = { { 0.4, 0.1, 0.3, 0.2 },// Fr. Migr. to.
-			{ 0.2, 0.15, 0.25, 0.4 }, // From Quacking to...
-			{ 0.2, 0.3, 0.4, 0.1 }, // From Panicking to...
-			{ 0.1, 0.2, 0.2, 0.5 } }; // From Feigning death to...
+	double[][] a;
 
-	double[][] b = {
-			{ 0.023166023166023165, 0.02355212355212355, 0.023938223938223938,
-					0.01969111969111969, 0.020077220077220077,
-					0.05791505791505792, 0.06177606177606178,
-					0.05405405405405406, 0.05444015444015444,
-					0.03861003861003861, 0.038996138996139,
-					0.03938223938223938, 0.039768339768339774,
-					0.040154440154440155, 0.04247104247104247,
-					0.04285714285714286, 0.04324324324324324,
-					0.043629343629343634, 0.044015444015444015,
-					0.0444015444015444, 0.044787644787644784,
-					0.04517374517374517, 0.04555984555984556,
-					0.04594594594594595, 0.04633204633204633 },
-			{ 0.05154639175257732, 0.020618556701030927, 0.021649484536082474,
-					0.08247422680412371, 0.08350515463917525,
-					0.022680412371134023, 0.023711340206185566,
-					0.0845360824742268, 0.08556701030927835,
-					0.01958762886597938, 0.018556701030927835,
-					0.01752577319587629, 0.016494845360824743,
-					0.024742268041237112, 0.02577319587628866,
-					0.026804123711340208, 0.027835051546391754,
-					0.028865979381443297, 0.029896907216494843,
-					0.030000000000000002, 0.030103092783505155,
-					0.0865979381443299, 0.08762886597938144,
-					0.08865979381443298, 0.08969072164948452 },
-			{ 0.012195121951219513, 0.049999999999999996, 0.051219512195121955,
-					0.03780487804878049, 0.03902439024390244,
-					0.0524390243902439, 0.05365853658536586,
-					0.04024390243902439, 0.041463414634146344,
-					0.054878048780487805, 0.05609756097560975,
-					0.05731707317073171, 0.058536585365853655,
-					0.042682926829268296, 0.04390243902439025,
-					0.0451219512195122, 0.046341463414634146,
-					0.0475609756097561, 0.04878048780487805,
-					0.059756097560975614, 0.06097560975609756,
-					0.036585365853658534, 0.03536585365853658,
-					0.03414634146341463, 0.032926829268292684 },
-			{ 0.037037037037037035, 0.018518518518518517, 0.14814814814814814,
-					0.01888888888888889, 0.18518518518518517,
-					0.01925925925925926, 0.019629629629629632, 0.02,
-					0.040740740740740744, 0.020370370370370372,
-					0.020740740740740744, 0.02111111111111111,
-					0.02148148148148148, 0.04111111111111111,
-					0.04148148148148149, 0.04185185185185185,
-					0.04222222222222222, 0.04259259259259259,
-					0.04296296296296296, 0.04333333333333333,
-					0.0437037037037037, 0.04407407407407407,
-					0.044444444444444446, 0.1111111111111111,
-					0.12962962962962962 } };
-
+	double[][] b;
 	double[][] alpha;
 	double[][] beta;
 
@@ -85,12 +30,16 @@ public class Analysis {
 
 	double[] c;
 
-	final static int maxIters = 20;
+	private static double LOG_REITERATION_THRESHOLD = 0.0000000001;
+	int timeThreshold;
+
+	final static int MAX_ITERS = 5000;
 	int iters = 0;
 	double oldLogProb = Double.NEGATIVE_INFINITY;
 
 	Duck duck;
 
+	// TODO
 	public AnalysisResult analyseDuck() {
 
 		int[] O = convertToO(duck.mSeq);
@@ -100,22 +49,16 @@ public class Analysis {
 		int maxMove = 0;
 		double max = 0;
 
-		int[] Op = new int[O.length + 1];
-
-		System.arraycopy(O, 0, Op, 0, O.length);
-
 		double prob = 0;
 
-		for (int move = 0; move < 25; move++) {
-			
-			prob=sumProbs(move);
+		for (int move = 0; move < NUMBER_OF_OUTPUTS; move++) {
+
+			prob = sumProbs(move);
 			if (prob > max) {
 				max = prob;
 				maxMove = move;
 			}
 		}
-		
-
 
 		return new AnalysisResult(indexToAction(maxMove), max);
 	}
@@ -124,7 +67,7 @@ public class Analysis {
 		double sum = 0;
 		for (int i = 0; i < NUMBER_OF_STATES; i++) {
 			for (int j = 0; j < NUMBER_OF_STATES; j++) {
-				sum+=alpha[i][alpha[0].length-1]*a[i][j]*b[j][move];
+				sum += alpha[i][alpha[0].length - 1] * a[i][j] * b[j][move];
 			}
 		}
 		return sum;
@@ -140,14 +83,7 @@ public class Analysis {
 			reestimateA(O);
 			reestimateB(O);
 		} while (iterateHamlet(O));
-		//
-		// System.out.println("----");
-		// print(pi);
-		// System.out.println("----");
-		// print(a);
-		// System.out.println("-----");
-		// print(b);
-		// System.out.println("-----");
+
 	}
 
 	private void alphaPass(int[] O) {
@@ -162,7 +98,7 @@ public class Analysis {
 		}
 
 		// scale the alpha-0(i)
-		c[0] = 1 / c[0];
+		c[0] = 1.0 / c[0];
 		for (int i = 0; i < NUMBER_OF_STATES; i++) {
 			alpha[i][0] = c[0] * alpha[i][0];
 		}
@@ -180,13 +116,12 @@ public class Analysis {
 			}
 
 			// scale alpha-t(i)
-			c[t] = 1 / c[t];
+			c[t] = 1.0 / c[t];
 			for (int i = 0; i < NUMBER_OF_STATES; i++) {
 				alpha[i][t] = alpha[i][t] * c[t];
 			}
 		}
-		// System.out.println("alpha");
-		// print(alpha);
+
 	}
 
 	private void betaPass(int[] O) {
@@ -210,8 +145,6 @@ public class Analysis {
 			}
 		}
 
-		// System.out.println("beta");
-		// print(beta);
 	}
 
 	private void computeGammas(int[] O) {
@@ -227,14 +160,12 @@ public class Analysis {
 			for (int i = 0; i < NUMBER_OF_STATES; i++) {
 				gamma[i][t] = 0;
 				for (int j = 0; j < NUMBER_OF_STATES; j++) {
-					gammaT[i][j][t] = alpha[i][t] * a[i][j] * b[j][O[t + 1]]
-							* beta[j][t + 1]/denom;
+					gammaT[i][j][t] = (alpha[i][t] * a[i][j] * b[j][O[t + 1]] * beta[j][t + 1])
+							/ denom;
 					gamma[i][t] = gamma[i][t] + gammaT[i][j][t];
 				}
 			}
 		}
-		// System.out.println("gamma");
-		// print(gamma);
 	}
 
 	private void reestimatePi(int[] O) {
@@ -290,7 +221,8 @@ public class Analysis {
 	private boolean iterateHamlet(int[] O) {
 		iters = iters + 1;
 		double logProb = computeLog(O);
-		if (iters < maxIters && logProb > oldLogProb) {
+		if (pDue.getTime() > new Date().getTime() + timeThreshold && iters < MAX_ITERS
+				&& logProb > (oldLogProb + LOG_REITERATION_THRESHOLD)) {
 			oldLogProb = logProb;
 			return true;
 		}
@@ -298,11 +230,11 @@ public class Analysis {
 	}
 
 	// TODO
-	public Analysis(Duck ducky, Date dueDate) {
+	public Analysis(Duck ducky, Date dueDate, boolean isPractice) {
 
 		duck = ducky;
 		int T = ducky.mSeq.size();
-		pDue=dueDate;
+		pDue = dueDate;
 		c = new double[T];
 
 		alpha = new double[NUMBER_OF_STATES][T];
@@ -310,12 +242,97 @@ public class Analysis {
 
 		gamma = new double[NUMBER_OF_STATES][T];
 		gammaT = new double[NUMBER_OF_STATES][NUMBER_OF_STATES][T];
+
+		pi = new double[NUMBER_OF_STATES];
+		a = new double[NUMBER_OF_STATES][NUMBER_OF_STATES];
+		b = new double[NUMBER_OF_STATES][NUMBER_OF_OUTPUTS];
+
+		if (isPractice) {
+			timeThreshold = 100;
+		} else {
+			timeThreshold = 300;
+		}
+
+		fill(pi);
+		fill(a);
+		fill(b);
+
+		// print(pi);
+		// System.out.println("-");
+		// print(a);
+		// System.out.println("-");
+		// print(b);
+	}
+
+	// TODO
+	private void fill(double[] matrix, int index) {
+
+		int length = matrix.length;
+
+		double blu = 1.0 / length;
+		int plop = 1;
+
+		int mod = 1;
+
+		double sum = 0;
+
+		if (length % 2 == 0) {
+			mod = 0;
+		}
+
+		for (int i = 0; i < length; i++) {
+
+			if (mod == 0 || (mod == 1 && i != length - 1)) {
+				matrix[i] = blu + (Math.pow(-1, i % 2)) * (plop) * 0.001
+						* (index + 1);
+
+				sum += matrix[i];
+			} else {
+				matrix[i] = 1 - sum;
+			}
+
+			if (i % 2 == 1)
+				plop++;
+
+		}
+
+		swap(matrix, index);
+
+	}
+
+	private void swap(double[] matrix, int index) {
+		double a = matrix[matrix.length - 1];
+		int swap = matrix.length - index - 1;
+		double b = matrix[swap];
+		matrix[matrix.length - 1] = b;
+		matrix[swap] = a;
+	}
+
+	private void fill(double[][] matrix) {
+		for (int i = 0; i < matrix.length; i++) {
+			fill(matrix[i], i);
+		}
+	}
+
+	private void fill(double[] matrix) {
+		fill(matrix, 0);
+	}
+
+	private void checkMatrix(double[] matrix) {
+		double sum = 0;
+
+		for (int i = 0; i < matrix.length; i++) {
+			sum += matrix[i];
+		}
+
+		if (sum != 1)
+			System.err.println("!=1 : " + sum);
 	}
 
 	public void print(double[][] matrix) {
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < matrix[0].length; j++) {
-				System.out.printf("%1.2f ", matrix[i][j]);
+				System.out.printf("%1.6f  ", matrix[i][j]);
 			}
 			System.out.println();
 		}
@@ -323,7 +340,7 @@ public class Analysis {
 
 	private void print(double[] vector) {
 		for (int i = 0; i < vector.length; i++) {
-			System.out.printf("%1.2f ", vector[i]);
+			System.out.printf("%1.6f ", vector[i]);
 		}
 		System.out.println();
 	}
@@ -350,117 +367,37 @@ public class Analysis {
 			break;
 		case 2:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_STOP, Action.ACTION_ACCELERATE,
-					Action.MOVE_DOWN);
+					Action.ACTION_STOP, Action.ACTION_KEEPSPEED, Action.MOVE_UP);
 			break;
 		case 3:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_STOP, Action.ACTION_KEEPSPEED, Action.MOVE_UP);
+					Action.ACTION_ACCELERATE, Action.ACTION_STOP,
+					Action.MOVE_WEST);
 			break;
 		case 4:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_STOP, Action.ACTION_KEEPSPEED,
-					Action.MOVE_DOWN);
+					Action.ACTION_ACCELERATE, Action.ACTION_ACCELERATE,
+					Action.MOVE_WEST);
 			break;
 		case 5:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_STOP,
-					Action.MOVE_WEST);
+					Action.ACTION_ACCELERATE, Action.ACTION_KEEPSPEED,
+					Action.MOVE_EAST + Action.MOVE_UP);
 			break;
 		case 6:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_STOP,
-					Action.MOVE_EAST);
+					Action.ACTION_KEEPSPEED, Action.ACTION_STOP,
+					Action.MOVE_EAST + Action.MOVE_UP);
 			break;
 		case 7:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_STOP,
-					Action.MOVE_WEST);
+					Action.ACTION_KEEPSPEED, Action.ACTION_ACCELERATE,
+					Action.MOVE_EAST + Action.MOVE_UP);
 			break;
 		case 8:
 			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_STOP,
-					Action.MOVE_EAST);
-			break;
-		case 9:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_ACCELERATE,
-					Action.MOVE_EAST + Action.MOVE_UP);
-			break;
-		case 10:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_ACCELERATE,
-					Action.MOVE_WEST + Action.MOVE_UP);
-			break;
-		case 11:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_ACCELERATE,
-					Action.MOVE_EAST + Action.MOVE_DOWN);
-			break;
-		case 12:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_ACCELERATE,
-					Action.MOVE_WEST + Action.MOVE_DOWN);
-			break;
-		case 13:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_KEEPSPEED,
-					Action.MOVE_EAST + Action.MOVE_UP);
-			break;
-		case 14:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_KEEPSPEED,
-					Action.MOVE_WEST + Action.MOVE_UP);
-			break;
-		case 15:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_KEEPSPEED,
-					Action.MOVE_EAST + Action.MOVE_DOWN);
-			break;
-		case 16:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_ACCELERATE, Action.ACTION_KEEPSPEED,
-					Action.MOVE_WEST + Action.MOVE_DOWN);
-			break;
-		case 17:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_ACCELERATE,
-					Action.MOVE_EAST + Action.MOVE_UP);
-			break;
-		case 18:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_ACCELERATE,
-					Action.MOVE_WEST + Action.MOVE_UP);
-			break;
-		case 19:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_ACCELERATE,
-					Action.MOVE_EAST + Action.MOVE_DOWN);
-			break;
-		case 20:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_ACCELERATE,
-					Action.MOVE_WEST + Action.MOVE_DOWN);
-			break;
-		case 21:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_KEEPSPEED,
-					Action.MOVE_EAST + Action.MOVE_UP);
-			break;
-		case 22:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
 					Action.ACTION_KEEPSPEED, Action.ACTION_KEEPSPEED,
 					Action.MOVE_WEST + Action.MOVE_UP);
-			break;
-		case 23:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_KEEPSPEED,
-					Action.MOVE_EAST + Action.MOVE_DOWN);
-			break;
-		case 24:
-			act = new Action(duck.GetLastAction().GetBirdNumber(),
-					Action.ACTION_KEEPSPEED, Action.ACTION_KEEPSPEED,
-					Action.MOVE_WEST + Action.MOVE_DOWN);
 			break;
 
 		default:
@@ -479,14 +416,6 @@ public class Analysis {
 
 	}
 
-	private void convertToO(Vector<Action> actions, int[] o) {
-
-		for (int i = 0; i < o.length; i++) {
-			o[i] = actionToIndex(actions.get(i));
-		}
-
-	}
-
 	private int actionToIndex(Action act) {
 		int index = 0;
 
@@ -494,94 +423,94 @@ public class Analysis {
 			if (act.GetVAction() == Action.ACTION_STOP) {
 				index = 0;
 			} else if (act.GetVAction() == Action.ACTION_ACCELERATE) {
-				if ((act.GetMovement() & Action.MOVE_UP) != 0) {
-					index = 1;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0) {
-					index = 2;
-				}
+				index = 1;
 			} else if (act.GetVAction() == Action.ACTION_KEEPSPEED) {
-				if ((act.GetMovement() & Action.MOVE_UP) != 0) {
-					index = 3;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0) {
-					index = 4;
-				}
+				index = 2;
 			}
 		} else if (act.GetHAction() == Action.ACTION_ACCELERATE) {
 			if (act.GetVAction() == Action.ACTION_STOP) {
-				if ((act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 5;
-				} else if ((act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 6;
-				}
+				index = 3;
 			} else if (act.GetVAction() == Action.ACTION_ACCELERATE) {
-				if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 9;
-				} else if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 10;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 11;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 12;
-				}
+				index = 4;
 			} else if (act.GetVAction() == Action.ACTION_KEEPSPEED) {
-				if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 13;
-				} else if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 14;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 15;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 16;
-				}
+				index = 5;
 			}
 		} else if (act.GetHAction() == Action.ACTION_KEEPSPEED) {
 			if (act.GetVAction() == Action.ACTION_STOP) {
-				if ((act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 7;
-				} else if ((act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 8;
-				}
+				index = 6;
 			} else if (act.GetVAction() == Action.ACTION_ACCELERATE) {
-				if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 17;
-				} else if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 18;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 19;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 20;
-				}
+				index = 7;
 			} else if (act.GetVAction() == Action.ACTION_KEEPSPEED) {
-				if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 21;
-				} else if ((act.GetMovement() & Action.MOVE_UP) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 22;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_EAST) != 0) {
-					index = 23;
-				} else if ((act.GetMovement() & Action.MOVE_DOWN) != 0
-						&& (act.GetMovement() & Action.MOVE_WEST) != 0) {
-					index = 24;
-				}
+				index = 8;
 			}
 		}
 
 		return index;
 
+	}
+
+	static int findMovement(Duck d, Action act) {
+		int movement = -1;
+		Action lastAct = d.GetLastAction();
+		int prevHAction = lastAct.GetHAction();
+		int prevVAction = lastAct.GetVAction();
+
+		int lastMovement = lastAct.GetMovement();
+		int prevHDirection = getHDirection(lastMovement);
+		int prevVDirection = getVDirection(lastMovement);
+		int hAction = act.GetHAction();
+		int vAction = act.GetVAction();
+		int hDirection = -1;
+		int vDirection = -1;
+
+		if (prevHAction == Action.ACTION_STOP && hAction != Action.ACTION_STOP) {
+			return -1;
+		} else if (hAction == Action.ACTION_STOP) {
+			hDirection = Action.BIRD_STOPPED;
+		} else if ((prevHAction == Action.ACTION_KEEPSPEED && hAction == Action.ACTION_KEEPSPEED)
+				|| (prevHAction == Action.ACTION_KEEPSPEED && hAction == Action.ACTION_ACCELERATE)
+				|| (prevHAction == Action.ACTION_ACCELERATE && hAction == Action.ACTION_KEEPSPEED)
+				|| (prevHAction == Action.ACTION_ACCELERATE && hAction == Action.ACTION_ACCELERATE)) {
+			hDirection = prevHDirection;
+		}
+
+		if (prevVAction == Action.ACTION_STOP && vAction != Action.ACTION_STOP) {
+			return -1;
+		} else if (vAction == Action.ACTION_STOP) {
+			vDirection = Action.BIRD_STOPPED;
+		} else if ((prevVAction == Action.ACTION_KEEPSPEED && vAction == Action.ACTION_KEEPSPEED)
+				|| (prevVAction == Action.ACTION_KEEPSPEED && vAction == Action.ACTION_ACCELERATE)
+				|| (prevVAction == Action.ACTION_ACCELERATE && vAction == Action.ACTION_KEEPSPEED)
+				|| (prevVAction == Action.ACTION_ACCELERATE && vAction == Action.ACTION_ACCELERATE)) {
+			vDirection = prevVDirection;
+		}
+
+		if (hDirection != -1 && vDirection != -1) {
+			movement = hDirection + vDirection;
+		}
+		return movement;
+	}
+
+	private static int getVDirection(int movement) {
+		int vDir = 0;
+
+		if ((movement & Action.MOVE_DOWN) != 0)
+			vDir = Action.MOVE_DOWN;
+		else if ((movement & Action.MOVE_UP) != 0)
+			vDir = Action.MOVE_UP;
+
+		return vDir;
+	}
+
+	private static int getHDirection(int movement) {
+		int hDir = 0;
+
+		if ((movement & Action.MOVE_EAST) != 0)
+			hDir = Action.MOVE_EAST;
+		else if ((movement & Action.MOVE_WEST) != 0)
+			hDir = Action.MOVE_WEST;
+
+		return hDir;
 	}
 
 }

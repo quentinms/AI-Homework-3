@@ -3,7 +3,6 @@ import java.util.Date;
 public class Player {
 
 	// /constructor
-
 	// /There is no data in the beginning, so not much should be done here.
 	Player() {
 	}
@@ -25,29 +24,54 @@ public class Player {
 	// /\return the position we want to shoot at, or cDontShoot if we
 	// /prefer to pass
 	Action Shoot(State pState, Date pDue) {
-		/*
-		 * Here you should write your clever algorithms to get the best action.
-		 * This skeleton never shoots.
-		 */
-		AnalysisResult max = new AnalysisResult(Action.cDontShoot, 0);
-		AnalysisResult current;
 
-		for (Duck d : pState.mDucks) {
-			current =  new Analysis(d,pDue).analyseDuck();
-			if (current.probability > max.probability) {
-				max = current;
+		if (pState.mDucks.length == 1)
+			return ShootPractice(pState, pDue);
+		else
+			return ShootGame(pState, pDue);
+
+	}
+
+	Action ShootGame(State pState, Date pDue) {
+		AnalysisResult max = new AnalysisResult(Action.cDontShoot, 0);
+		Action result = Action.cDontShoot;
+		AnalysisResult current;
+		Duck maxDuck = null;
+		if (pState.mDucks[0].mSeq.size() > 250) {
+			for (Duck d : pState.mDucks) {
+				if (d.IsAlive()) {
+					current = new Analysis(d, pDue, false).analyseDuck();
+					if (current.probability > max.probability) {
+						max = current;
+						maxDuck = d;
+					}
+				}
+
 			}
+
+			int move=-1;
+			if (maxDuck != null)
+				move = Analysis.findMovement(maxDuck, max.action);
+
+			if (move != -1) {
+				result = new Action(maxDuck.GetLastAction().GetBirdNumber(),
+						max.action.GetHAction(), max.action.GetVAction(), move);
+				System.out.print("BANG! ---> ");
+			} else {
+				// System.out.println("dont't shoot!");
+			}
+
 		}
 
-		
-		return max.action;
+		// System.out.println(max.probability);
 
-		// this line would predict that bird 0 is totally stopped and shoot at
-		// it
-		// return new
-		// Action(0,Action.ACTION_STOP,Action.ACTION_STOP,Action.BIRD_STOPPED);
+		return result;
+	}
 
-		// return bestAction;
+	Action ShootPractice(State pState, Date pDue) {
+
+		return new Analysis(pState.mDucks[0], pDue, true).analyseDuck().action;
+
 	}
 
 	// /guess the species!
@@ -68,6 +92,7 @@ public class Player {
 		 * each alive bird. This skeleton guesses that all of them are white...
 		 * they were the most likely after all!
 		 */
+		System.out.print("$");
 
 		for (int i = 0; i < pDucks.length; i++) {
 			if (pDucks[i].IsAlive())
@@ -80,6 +105,41 @@ public class Player {
 	// /\param pSpecies the species of the duck (it will also be set for this
 	// duck in pState from now on)
 	void Hit(int pDuck, int pSpecies) {
-		System.out.println("HIT DUCK!!!");
+		if (pSpecies == 1)
+			System.err.println("HIT BLACK!");
+		else
+			System.out.println("HIT DUCK!!! " + getColor(pSpecies));
+	}
+
+	private String getColor(int species) {
+		String s = "";
+
+		switch (species) {
+
+		case -1:
+			s = "Unknown";
+			break;
+		case 0:
+			s = "White";
+			break;
+		case 1:
+			s = "Black";
+			break;
+		case 2:
+			s = "Blue";
+			break;
+		case 3:
+			s = "Red";
+			break;
+		case 4:
+			s = "Green";
+			break;
+		case 5:
+			s = "Yellow";
+			break;
+
+		}
+
+		return s;
 	}
 }
