@@ -19,7 +19,7 @@ public class Analysis {
 
 	/* Initialize probabilities (state to state, state to move, etc...) */
 
-	double[][] a;
+	double[][] a={{0.75,0.14,0.16},{0.16,0.7,0.14},{0.14,0.16,0.7}};
 
 	double[][] b;
 	double[][] alpha;
@@ -244,7 +244,7 @@ public class Analysis {
 		gammaT = new double[NUMBER_OF_STATES][NUMBER_OF_STATES][T];
 
 		pi = new double[NUMBER_OF_STATES];
-		a = new double[NUMBER_OF_STATES][NUMBER_OF_STATES];
+		//a = new double[NUMBER_OF_STATES][NUMBER_OF_STATES];
 		b = new double[NUMBER_OF_STATES][NUMBER_OF_OUTPUTS];
 
 		if (isPractice) {
@@ -254,7 +254,7 @@ public class Analysis {
 		}
 
 		fill(pi);
-		fill(a);
+		//fill(a);
 		fill(b);
 
 		// print(pi);
