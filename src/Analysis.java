@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
 
@@ -8,18 +9,34 @@ public class Analysis {
 
 	Date pDue;
 
+	static boolean checkStates=true;
+	
+	static ArrayList<ArrayList<Integer>> ducksEach3Set = initiateArrayList();
+	
+	static ArrayList<ArrayList<Integer>> initiateArrayList(){
+		ArrayList<ArrayList<Integer>> arr = new ArrayList<ArrayList<Integer>>();
+		
+		arr.add(new ArrayList<Integer>());
+		arr.add(new ArrayList<Integer>());
+		arr.add(new ArrayList<Integer>());
+		arr.add(new ArrayList<Integer>());
+		
+		return arr;
+	}
+
 	double[] pi;
 	final static int NUMBER_OF_STATES = 3;
 	final static int NUMBER_OF_OUTPUTS = 9;
 
-	// final static int MIGRATING = 0;
-	// final static int QUACKING = 1;
-	// final static int PANICKING = 2;
-	// final static int FEIGNING_DEATH = 3;
+	final static int MIGRATING = 0;
+	final static int QUACKING = 1;
+	final static int PANICKING = 2;
+	final static int FEIGNING_DEATH = 3;
 
 	/* Initialize probabilities (state to state, state to move, etc...) */
 
-	double[][] a={{0.75,0.14,0.16},{0.16,0.7,0.14},{0.14,0.16,0.7}};
+	double[][] a = { { 0.8, 0.09, 0.11 }, { 0.11, 0.8, 0.09 },
+			{ 0.09, 0.11, 0.8 } };
 
 	double[][] b;
 	double[][] alpha;
@@ -30,10 +47,10 @@ public class Analysis {
 
 	double[] c;
 
-	private static double LOG_REITERATION_THRESHOLD = 0.0000000001;
+	private static double LOG_REITERATION_THRESHOLD = 0.00000001;
 	int timeThreshold;
 
-	final static int MAX_ITERS = 5000;
+	static int MAX_ITERS = 5000;
 	int iters = 0;
 	double oldLogProb = Double.NEGATIVE_INFINITY;
 
@@ -60,9 +77,33 @@ public class Analysis {
 			}
 		}
 
+//		boolean[] states = checkStates(getDuckStates(b));
+//		
+//		
+//		if(checkStates)countBirdsInState(states);
+		
+		//System.out.println(states[0]+" "+states[1]+" "+states[2]+" "+states[3]);
+		
 		return new AnalysisResult(indexToAction(maxMove), max);
 	}
 
+	static int findBlackState(){
+		int length= ducksEach3Set.size();
+		for(int i= 0; i<length; i++){
+			if(ducksEach3Set.get(i).size()==1&&ducksEach3Set.get((i+1)%length).size()!=1&&ducksEach3Set.get((i+2)%length).size()!=1&&ducksEach3Set.get((i+3)%length).size()!=1){return i;}
+		}
+		
+		return -1;
+	}
+	
+	void countBirdsInState(boolean[] states){
+		if(!states[MIGRATING]){ducksEach3Set.get(MIGRATING).add(duck.mSeq.firstElement().mBirdNumber);}
+		else if(!states[QUACKING]){ducksEach3Set.get(QUACKING).add(duck.mSeq.firstElement().mBirdNumber);}
+		else if(!states[PANICKING]){ducksEach3Set.get(PANICKING).add(duck.mSeq.firstElement().mBirdNumber);}
+		else if(!states[FEIGNING_DEATH]){ducksEach3Set.get(FEIGNING_DEATH).add(duck.mSeq.firstElement().mBirdNumber);}	
+	}
+	
+	// TODO
 	private double sumProbs(int move) {
 		double sum = 0;
 		for (int i = 0; i < NUMBER_OF_STATES; i++) {
@@ -83,6 +124,12 @@ public class Analysis {
 			reestimateA(O);
 			reestimateB(O);
 		} while (iterateHamlet(O));
+
+		// print(pi);
+		// System.out.println("-");
+		// print(a);
+		// System.out.println("-");
+		//print(b);
 
 	}
 
@@ -221,8 +268,9 @@ public class Analysis {
 	private boolean iterateHamlet(int[] O) {
 		iters = iters + 1;
 		double logProb = computeLog(O);
-		if (pDue.getTime() > new Date().getTime() + timeThreshold && iters < MAX_ITERS
-				&& logProb > (oldLogProb + LOG_REITERATION_THRESHOLD)) {
+		if (//pDue.getTime() > new Date().getTime() + timeThreshold
+				 iters < MAX_ITERS
+				/*&& logProb > (oldLogProb + LOG_REITERATION_THRESHOLD)*/) {
 			oldLogProb = logProb;
 			return true;
 		}
@@ -244,17 +292,19 @@ public class Analysis {
 		gammaT = new double[NUMBER_OF_STATES][NUMBER_OF_STATES][T];
 
 		pi = new double[NUMBER_OF_STATES];
-		//a = new double[NUMBER_OF_STATES][NUMBER_OF_STATES];
+		// a = new double[NUMBER_OF_STATES][NUMBER_OF_STATES];
 		b = new double[NUMBER_OF_STATES][NUMBER_OF_OUTPUTS];
 
 		if (isPractice) {
 			timeThreshold = 100;
+			MAX_ITERS=5000;
 		} else {
 			timeThreshold = 300;
+			MAX_ITERS=50;
 		}
 
 		fill(pi);
-		//fill(a);
+		// fill(a);
 		fill(b);
 
 		// print(pi);
@@ -447,6 +497,89 @@ public class Analysis {
 
 		return index;
 
+	}
+
+	// TODO
+	boolean[] getDuckStates(double[][] b) {
+		boolean[] states = new boolean[4];
+
+		for (int i = 0; i < b.length; i++) {
+			int state = findState(b[i]);
+			if (state == MIGRATING) {
+				states[MIGRATING] = true;
+			} else if (state == QUACKING) {
+				states[QUACKING] = true;
+			} else if (state == FEIGNING_DEATH) {
+				states[FEIGNING_DEATH] = true;
+			} else if (state == PANICKING) {
+				states[PANICKING] = true;
+			}
+		}
+
+		return states;
+	}
+
+	private int findState(double[] b) {
+
+		double maxProb = 0;
+		double maxIndex = -1;
+		double scMaxProb = 0;
+		int nbOfZeros = 0;
+		int nbOfGreaterThan01 = 0;
+
+		for (int i = 0; i < b.length; i++) {
+			if (b[i] > maxProb) {
+				scMaxProb = maxProb;
+				maxProb = b[i];
+				maxIndex = i;
+
+			}
+			if (b[i] < 0.00001) {
+				nbOfZeros++;
+			} else if (b[i] > 0.1) {
+				nbOfGreaterThan01++;
+			}
+		}
+
+		if (maxProb > 0.4 && maxIndex == 6) {
+			//System.out.println("Migrating ");
+			return MIGRATING;
+		} else if (maxProb > 0.4
+				&& (maxIndex == 4 || maxIndex == 3 || maxIndex == 7)) {
+			//System.out.println("Panicking");
+			return PANICKING;
+		} else if (maxProb > 0.4 && maxIndex == 1) {
+			//System.out.println("Feigning death");
+			return FEIGNING_DEATH;
+		}
+		//System.out.println("Quacking");
+		return QUACKING;
+	}
+
+	static boolean[] checkStates(boolean[] states) {
+
+		int sum = 0;
+
+		for (int i = 0; i < states.length; i++) {
+			if (states[i])
+				sum++;
+		}
+
+		if (sum < 3) {
+			if (states[MIGRATING] && states[QUACKING]) {
+				states[PANICKING] = true;
+			} else if (states[FEIGNING_DEATH] && states[QUACKING]) {
+				states[PANICKING] = true;
+			} else if (states[FEIGNING_DEATH] && states[PANICKING]) {
+				states[QUACKING] = true;
+			} else if (states[FEIGNING_DEATH] && states[PANICKING]) {
+				states[MIGRATING] = true;
+			} else if (states[MIGRATING] && states[PANICKING]) {
+				states[QUACKING] = true;
+			}
+		}
+
+		return states;
 	}
 
 	static int findMovement(Duck d, Action act) {
