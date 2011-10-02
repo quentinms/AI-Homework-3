@@ -2,10 +2,10 @@ import java.util.Date;
 
 public class Player {
 
-//	int blackState = -1;
-//	int tour = 0;
-//	int shoot = 0;
-//	int hit = 0;
+	// int blackState = -1;
+	// int tour = 0;
+	// int shoot = 0;
+	// int hit = 0;
 
 	// /constructor
 	// /There is no data in the beginning, so not much should be done here.
@@ -42,7 +42,7 @@ public class Player {
 		Action result = Action.cDontShoot;
 		AnalysisResult current;
 		Duck maxDuck = null;
-		if (pState.mDucks[0].mSeq.size() > 0) {
+		if (pState.mDucks[0].mSeq.size() > 40) {
 			for (Duck d : pState.mDucks) {
 				if (d.IsAlive()) {
 					current = new Analysis(d, pDue, false).analyseDuck();
@@ -54,33 +54,33 @@ public class Player {
 
 			}
 
-//			if (Analysis.ducksEach3Set.get(0).size() != 1
-//					&& Analysis.ducksEach3Set.get(1).size() != 1
-//					&& Analysis.ducksEach3Set.get(2).size() != 1
-//					&& Analysis.ducksEach3Set.get(3).size() != 1
-//					|| Analysis.ducksEach3Set.get(0).size()
-//					+ Analysis.ducksEach3Set.get(1).size()
-//					+ Analysis.ducksEach3Set.get(2).size()
-//					+ Analysis.ducksEach3Set.get(3).size()!=180) {
-//				Analysis.ducksEach3Set = Analysis.initiateArrayList();
-//			} else
-//				Analysis.checkStates = false;
-//
-//			blackState = Analysis.findBlackState();
-//			//
-//			if (blackState == -1) {
-//				Analysis.ducksEach3Set = Analysis.initiateArrayList();
-//			} else {
-//				Analysis.checkStates = false;
-//			}
-//
-//			System.out.println(tour + " - "
-//					+ Analysis.ducksEach3Set.get(0).size() + " "
-//					+ Analysis.ducksEach3Set.get(1).size() + " "
-//					+ Analysis.ducksEach3Set.get(2).size() + " "
-//					+ Analysis.ducksEach3Set.get(3).size());
+			// if (Analysis.ducksEach3Set.get(0).size() != 1
+			// && Analysis.ducksEach3Set.get(1).size() != 1
+			// && Analysis.ducksEach3Set.get(2).size() != 1
+			// && Analysis.ducksEach3Set.get(3).size() != 1
+			// || Analysis.ducksEach3Set.get(0).size()
+			// + Analysis.ducksEach3Set.get(1).size()
+			// + Analysis.ducksEach3Set.get(2).size()
+			// + Analysis.ducksEach3Set.get(3).size()!=180) {
+			// Analysis.ducksEach3Set = Analysis.initiateArrayList();
+			// } else
+			// Analysis.checkStates = false;
+			//
+			// blackState = Analysis.findBlackState();
+			// //
+			// if (blackState == -1) {
+			// Analysis.ducksEach3Set = Analysis.initiateArrayList();
+			// } else {
+			// Analysis.checkStates = false;
+			// }
+			//
+			// System.out.println(tour + " - "
+			// + Analysis.ducksEach3Set.get(0).size() + " "
+			// + Analysis.ducksEach3Set.get(1).size() + " "
+			// + Analysis.ducksEach3Set.get(2).size() + " "
+			// + Analysis.ducksEach3Set.get(3).size());
 
-			int move = -1;
+			
 			//
 			// if (blackState != -1)
 			// System.out.println("Blackbird found!");
@@ -90,15 +90,15 @@ public class Player {
 			// && max.probability > 0.7
 			// && !Analysis.ducksEach3Set.get(blackState).contains(
 			// max.action.mBirdNumber))
+			int move = -1;
 			if (maxDuck != null) {
 				move = Analysis.findMovement(maxDuck, max.action);
-				//
 				if (move != -1) {
-					if (max.probability > 0.33) {
+					if (max.probability > 0.3) {
 						result = new Action(maxDuck.GetLastAction()
 								.GetBirdNumber(), max.action.GetHAction(),
 								max.action.GetVAction(), move);
-						//shoot++;
+						// shoot++;
 						// System.out.println("BANG! ---> " + hit + " / " +
 						// shoot);
 					}
@@ -107,7 +107,6 @@ public class Player {
 			}
 
 		}
-
 		return result;
 	}
 
@@ -150,7 +149,7 @@ public class Player {
 	// /\param pSpecies the species of the duck (it will also be set for this
 	// duck in pState from now on)
 	void Hit(int pDuck, int pSpecies) {
-		//hit++;
+		// hit++;
 		if (pSpecies == 1) {
 			System.err.println("HIT BLACK!");
 		} else
