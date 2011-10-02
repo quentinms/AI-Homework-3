@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Vector;
 
@@ -6,23 +5,22 @@ public class Analysis {
 
 	Action action;
 	double probability;
-
 	Date pDue;
 
-	static boolean checkStates=true;
-	
-	static ArrayList<ArrayList<Integer>> ducksEach3Set = initiateArrayList();
-	
-	static ArrayList<ArrayList<Integer>> initiateArrayList(){
-		ArrayList<ArrayList<Integer>> arr = new ArrayList<ArrayList<Integer>>();
-		
-		arr.add(new ArrayList<Integer>());
-		arr.add(new ArrayList<Integer>());
-		arr.add(new ArrayList<Integer>());
-		arr.add(new ArrayList<Integer>());
-		
-		return arr;
-	}
+//	static boolean checkStates = true;
+//
+//	static ArrayList<ArrayList<Integer>> ducksEach3Set = initiateArrayList();
+//
+//	static ArrayList<ArrayList<Integer>> initiateArrayList() {
+//		ArrayList<ArrayList<Integer>> arr = new ArrayList<ArrayList<Integer>>();
+//
+//		arr.add(new ArrayList<Integer>());
+//		arr.add(new ArrayList<Integer>());
+//		arr.add(new ArrayList<Integer>());
+//		arr.add(new ArrayList<Integer>());
+//
+//		return arr;
+//	}
 
 	double[] pi;
 	final static int NUMBER_OF_STATES = 3;
@@ -77,32 +75,43 @@ public class Analysis {
 			}
 		}
 
-//		boolean[] states = checkStates(getDuckStates(b));
-//		
-//		
-//		if(checkStates)countBirdsInState(states);
-		
-		//System.out.println(states[0]+" "+states[1]+" "+states[2]+" "+states[3]);
-		
+		// boolean[] states = checkStates(getDuckStates(b));
+		// if(checkStates)countBirdsInState(states);
+		// System.out.println(states[0]+" "+states[1]+" "+states[2]+" "+states[3]+" ");
+
 		return new AnalysisResult(indexToAction(maxMove), max);
 	}
 
-	static int findBlackState(){
-		int length= ducksEach3Set.size();
-		for(int i= 0; i<length; i++){
-			if(ducksEach3Set.get(i).size()==1&&ducksEach3Set.get((i+1)%length).size()!=1&&ducksEach3Set.get((i+2)%length).size()!=1&&ducksEach3Set.get((i+3)%length).size()!=1){return i;}
-		}
-		
-		return -1;
-	}
-	
-	void countBirdsInState(boolean[] states){
-		if(!states[MIGRATING]){ducksEach3Set.get(MIGRATING).add(duck.mSeq.firstElement().mBirdNumber);}
-		else if(!states[QUACKING]){ducksEach3Set.get(QUACKING).add(duck.mSeq.firstElement().mBirdNumber);}
-		else if(!states[PANICKING]){ducksEach3Set.get(PANICKING).add(duck.mSeq.firstElement().mBirdNumber);}
-		else if(!states[FEIGNING_DEATH]){ducksEach3Set.get(FEIGNING_DEATH).add(duck.mSeq.firstElement().mBirdNumber);}	
-	}
-	
+//	static int findBlackState() {
+//		int length = ducksEach3Set.size();
+//		for (int i = 0; i < length; i++) {
+//			if (ducksEach3Set.get(i).size() == 1
+//					&& ducksEach3Set.get((i + 1) % length).size() != 1
+//					&& ducksEach3Set.get((i + 2) % length).size() != 1
+//					&& ducksEach3Set.get((i + 3) % length).size() != 1) {
+//				return i;
+//			}
+//		}
+//
+//		return -1;
+//	}
+//
+//	void countBirdsInState(boolean[] states) {
+//		if (!states[MIGRATING]) {
+//			ducksEach3Set.get(MIGRATING).add(
+//					duck.mSeq.firstElement().mBirdNumber);
+//		} else if (!states[QUACKING]) {
+//			ducksEach3Set.get(QUACKING).add(
+//					duck.mSeq.firstElement().mBirdNumber);
+//		} else if (!states[PANICKING]) {
+//			ducksEach3Set.get(PANICKING).add(
+//					duck.mSeq.firstElement().mBirdNumber);
+//		} else if (!states[FEIGNING_DEATH]) {
+//			ducksEach3Set.get(FEIGNING_DEATH).add(
+//					duck.mSeq.firstElement().mBirdNumber);
+//		}
+//	}
+
 	// TODO
 	private double sumProbs(int move) {
 		double sum = 0;
@@ -124,12 +133,6 @@ public class Analysis {
 			reestimateA(O);
 			reestimateB(O);
 		} while (iterateHamlet(O));
-
-		// print(pi);
-		// System.out.println("-");
-		// print(a);
-		// System.out.println("-");
-		//print(b);
 
 	}
 
@@ -268,9 +271,9 @@ public class Analysis {
 	private boolean iterateHamlet(int[] O) {
 		iters = iters + 1;
 		double logProb = computeLog(O);
-		if (//pDue.getTime() > new Date().getTime() + timeThreshold
-				 iters < MAX_ITERS
-				/*&& logProb > (oldLogProb + LOG_REITERATION_THRESHOLD)*/) {
+		if (pDue.getTime() > new Date().getTime() + timeThreshold
+				&& iters < MAX_ITERS
+				&& logProb > (oldLogProb + LOG_REITERATION_THRESHOLD)) {
 			oldLogProb = logProb;
 			return true;
 		}
@@ -297,21 +300,14 @@ public class Analysis {
 
 		if (isPractice) {
 			timeThreshold = 100;
-			MAX_ITERS=5000;
+			MAX_ITERS = 5000;
 		} else {
 			timeThreshold = 300;
-			MAX_ITERS=50;
+			MAX_ITERS = 50;
 		}
 
 		fill(pi);
-		// fill(a);
 		fill(b);
-
-		// print(pi);
-		// System.out.println("-");
-		// print(a);
-		// System.out.println("-");
-		// print(b);
 	}
 
 	// TODO
@@ -542,17 +538,17 @@ public class Analysis {
 		}
 
 		if (maxProb > 0.4 && maxIndex == 6) {
-			//System.out.println("Migrating ");
+			// System.out.println("Migrating ");
 			return MIGRATING;
 		} else if (maxProb > 0.4
 				&& (maxIndex == 4 || maxIndex == 3 || maxIndex == 7)) {
-			//System.out.println("Panicking");
+			// System.out.println("Panicking");
 			return PANICKING;
 		} else if (maxProb > 0.4 && maxIndex == 1) {
-			//System.out.println("Feigning death");
+			// System.out.println("Feigning death");
 			return FEIGNING_DEATH;
 		}
-		//System.out.println("Quacking");
+		// System.out.println("Quacking");
 		return QUACKING;
 	}
 
@@ -565,7 +561,7 @@ public class Analysis {
 				sum++;
 		}
 
-		if (sum < 3) {
+		if (sum == 2) {
 			if (states[MIGRATING] && states[QUACKING]) {
 				states[PANICKING] = true;
 			} else if (states[FEIGNING_DEATH] && states[QUACKING]) {
@@ -577,6 +573,8 @@ public class Analysis {
 			} else if (states[MIGRATING] && states[PANICKING]) {
 				states[QUACKING] = true;
 			}
+		} else if (sum == 1) {
+			// TODO
 		}
 
 		return states;
